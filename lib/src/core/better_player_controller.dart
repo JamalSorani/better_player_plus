@@ -413,7 +413,7 @@ class BetterPlayerController {
         }
       }
       _asmsSegmentsLoading = false;
-    } on Exception catch (exception) {
+    } catch (exception) {
       BetterPlayerUtils.log("Load ASMS subtitle segments failed: $exception");
     }
   }
@@ -1269,6 +1269,10 @@ class BetterPlayerController {
   void setBetterPlayerControlsConfiguration(
       BetterPlayerControlsConfiguration betterPlayerControlsConfiguration) {
     this._betterPlayerControlsConfiguration = betterPlayerControlsConfiguration;
+  }
+
+  void postControllerEvent(BetterPlayerControllerEvent event) {
+    _postControllerEvent(event);
   }
 
   /// Add controller internal event.

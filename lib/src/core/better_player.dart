@@ -10,7 +10,9 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 ///Widget which uses provided controller to render video player.
 class BetterPlayer extends StatefulWidget {
-  const BetterPlayer({Key? key, required this.controller}) : super(key: key);
+  const BetterPlayer(
+      {Key? key, required this.controller, this.onFullScreenClosed})
+      : super(key: key);
 
   factory BetterPlayer.network(
     String url, {
@@ -37,7 +39,7 @@ class BetterPlayer extends StatefulWidget {
       );
 
   final BetterPlayerController controller;
-
+  final Future<bool> Function()? onFullScreenClosed;
   @override
   _BetterPlayerState createState() {
     return _BetterPlayerState();
@@ -90,7 +92,7 @@ class _BetterPlayerState extends State<BetterPlayer>
         final contextLocale = Localizations.localeOf(context);
         locale = contextLocale;
       }
-    } on Exception catch (exception) {
+    } catch (exception) {
       BetterPlayerUtils.log(exception.toString());
     }
     widget.controller.setupTranslations(locale);
@@ -152,6 +154,9 @@ class _BetterPlayerState extends State<BetterPlayer>
       await _pushFullScreenWidget(context);
     } else if (_isFullScreen) {
       Navigator.of(context, rootNavigator: true).pop();
+      if (widget.onFullScreenClosed != null) {
+        await widget.onFullScreenClosed!();
+      }
       _isFullScreen = false;
       controller
           .postEvent(BetterPlayerEvent(BetterPlayerEventType.hideFullscreen));
@@ -172,10 +177,16 @@ class _BetterPlayerState extends State<BetterPlayer>
       BetterPlayerControllerProvider controllerProvider) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Container(
-        alignment: Alignment.center,
-        color: Colors.black,
-        child: controllerProvider,
+      body: InteractiveViewer(
+        panEnabled: true, // Set it to false to prevent panning.
+        boundaryMargin: EdgeInsets.all(10),
+        minScale: 1,
+        maxScale: 4,
+        child: Container(
+          alignment: Alignment.center,
+          color: Colors.black,
+          child: controllerProvider,
+        ),
       ),
     );
   }
@@ -203,12 +214,18 @@ class _BetterPlayerState extends State<BetterPlayer>
 
     final routePageBuilder = _betterPlayerConfiguration.routePageBuilder;
     if (routePageBuilder == null) {
-      return _defaultRoutePageBuilder(
-          context, animation, secondaryAnimation, controllerProvider);
+      return WillPopScope(
+        onWillPop: widget.onFullScreenClosed,
+        child: _defaultRoutePageBuilder(
+            context, animation, secondaryAnimation, controllerProvider),
+      );
     }
 
-    return routePageBuilder(
-        context, animation, secondaryAnimation, controllerProvider);
+    return WillPopScope(
+      onWillPop: widget.onFullScreenClosed,
+      child: routePageBuilder(
+          context, animation, secondaryAnimation, controllerProvider),
+    );
   }
 
   Future<dynamic> _pushFullScreenWidget(BuildContext context) async {
