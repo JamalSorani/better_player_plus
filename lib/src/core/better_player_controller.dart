@@ -413,7 +413,7 @@ class BetterPlayerController {
         }
       }
       _asmsSegmentsLoading = false;
-    } catch (exception) {
+    } on Exception catch (exception) {
       BetterPlayerUtils.log("Load ASMS subtitle segments failed: $exception");
     }
   }
@@ -521,10 +521,6 @@ class BetterPlayerController {
           throw ArgumentError("Couldn't create file from memory.");
         }
         break;
-
-      default:
-        throw UnimplementedError(
-            "${betterPlayerDataSource.type} is not implemented");
     }
     await _initializeVideo();
   }

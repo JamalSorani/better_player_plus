@@ -40,6 +40,7 @@ class BetterPlayer extends StatefulWidget {
 
   final BetterPlayerController controller;
   final Future<bool> Function()? onFullScreenClosed;
+
   @override
   _BetterPlayerState createState() {
     return _BetterPlayerState();
@@ -92,7 +93,7 @@ class _BetterPlayerState extends State<BetterPlayer>
         final contextLocale = Localizations.localeOf(context);
         locale = contextLocale;
       }
-    } catch (exception) {
+    } on Exception catch (exception) {
       BetterPlayerUtils.log(exception.toString());
     }
     widget.controller.setupTranslations(locale);
@@ -224,7 +225,11 @@ class _BetterPlayerState extends State<BetterPlayer>
     return WillPopScope(
       onWillPop: widget.onFullScreenClosed,
       child: routePageBuilder(
-          context, animation, secondaryAnimation, controllerProvider),
+        context,
+        animation,
+        secondaryAnimation,
+        controllerProvider,
+      ),
     );
   }
 
